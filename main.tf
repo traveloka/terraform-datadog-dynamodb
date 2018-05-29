@@ -1,5 +1,9 @@
+locals {
+  monitor_enabled = "${var.enabled && length(var.recipients) > 0 ? 1 : 0}"
+}
+
 resource "datadog_timeboard" "dynamodb" {
-  title       = "${var.product_domain} - ${var.table_name} - DynamoDB"
+  title       = "${var.product_domain} - ${var.table_name} - ${var.environment} - DynamoDB"
   description = "A generated timeboard for DynamoDB"
 
   template_variable {
@@ -8,13 +12,19 @@ resource "datadog_timeboard" "dynamodb" {
     prefix  = "tablename"
   }
 
+  template_variable {
+    default = "${var.environment}"
+    name    = "environment"
+    prefix  = "environment"
+  }
+
   graph {
     title     = "Conditional Check Failed Requests"
     viz       = "timeseries"
     autoscale = true
 
     request {
-      q    = "avg:aws.dynamodb.conditional_check_failed_requests{$table_name} by {tablename}.as_count()"
+      q    = "avg:aws.dynamodb.conditional_check_failed_requests{$table_name, $environment} by {tablename}.as_count()"
       type = "line"
     }
   }
@@ -25,7 +35,7 @@ resource "datadog_timeboard" "dynamodb" {
     autoscale = true
 
     request {
-      q    = "avg:aws.dynamodb.consumed_read_capacity_units{$table_name} by {tablename,globalsecondaryindexname}"
+      q    = "avg:aws.dynamodb.consumed_read_capacity_units{$table_name} by {tablename, globalsecondaryindexname}"
       type = "line"
     }
   }
@@ -36,7 +46,7 @@ resource "datadog_timeboard" "dynamodb" {
     autoscale = true
 
     request {
-      q    = "avg:aws.dynamodb.consumed_write_capacity_units{$table_name} by {tablename,globalsecondaryindexname}"
+      q    = "avg:aws.dynamodb.consumed_write_capacity_units{$table_name} by {tablename, globalsecondaryindexname}"
       type = "line"
     }
   }
@@ -47,7 +57,7 @@ resource "datadog_timeboard" "dynamodb" {
     autoscale = true
 
     request {
-      q    = "avg:aws.dynamodb.provisioned_read_capacity_units{$table_name} by {tablename,globalsecondaryindexname}"
+      q    = "avg:aws.dynamodb.provisioned_read_capacity_units{$table_name} by {tablename, globalsecondaryindexname}"
       type = "line"
     }
   }
@@ -58,7 +68,7 @@ resource "datadog_timeboard" "dynamodb" {
     autoscale = true
 
     request {
-      q    = "avg:aws.dynamodb.provisioned_write_capacity_units{$table_name} by {tablename,globalsecondaryindexname}"
+      q    = "avg:aws.dynamodb.provisioned_write_capacity_units{$table_name} by {tablename, globalsecondaryindexname}"
       type = "line"
     }
   }
@@ -100,17 +110,17 @@ resource "datadog_timeboard" "dynamodb" {
     autoscale = true
 
     request {
-      q    = "avg:aws.dynamodb.successful_request_latency{$table_name} by {tablename,operation}"
+      q    = "avg:aws.dynamodb.successful_request_latency{$table_name} by {tablename, operation}"
       type = "line"
     }
 
     request {
-      q    = "avg:aws.dynamodb.successful_request_latency.maximum{$table_name} by {tablename,operation}"
+      q    = "avg:aws.dynamodb.successful_request_latency.maximum{$table_name} by {tablename, operation}"
       type = "line"
     }
 
     request {
-      q    = "avg:aws.dynamodb.successful_request_latency.samplecount{$table_name} by {tablename,operation}.as_count()"
+      q    = "avg:aws.dynamodb.successful_request_latency.samplecount{$table_name} by {tablename, operation}.as_count()"
       type = "line"
     }
   }
